@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from fastapi import HTTPException
 from core.security import crear_token
-
+from sqlalchemy.exc import IntegrityError
 
 from schemas.usuario import UsuarioLogin
 from schemas.usuario import UsuarioUpdate
@@ -50,6 +50,19 @@ def actualizar_usuario_service(db: Session, usuario_id: int, datos: UsuarioUpdat
 
 def eliminar_usuario_service(db: Session, usuario_id: int):
     usuario = obtener_por_id(db, usuario_id)
+
     if not usuario:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    eliminar_usuario(db, usuario)
+        raise HTTPException(
+            status_code=404,
+            detail="Usuario no encontrado"
+        )
+
+    try:
+        eliminar_usuario(db, usuario)
+
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="No se puede eliminar el usuario porque tiene registros asociados."
+        )

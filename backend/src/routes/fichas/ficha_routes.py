@@ -30,7 +30,7 @@ def listar(instructor_id: int, db: Session = Depends(get_db)):
 
 #put y delete piden instructor_id como parametro suelto, esto es peligroso, por lo tanto mas adelante se debe tener en cuenta tomar el id de el instructor desde el JWT
 
-@router.put("/{ficha_id}", response_model=FichaOut)
+@router.patch("/{ficha_id}", response_model=FichaOut)
 def actualizar(ficha_id: int, datos: FichaUpdate, instructor_id: int, db: Session = Depends(get_db)):
     return actualizar_ficha_service(db, ficha_id, datos, instructor_id)
 

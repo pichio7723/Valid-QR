@@ -1,5 +1,6 @@
-from sqlalchemy.orm import Session
 from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 from schemas.sede import SedeCrear, SedeUpdate
 from repositories.sedes.sede_repository import (
@@ -47,12 +48,38 @@ def actualizar_sede_service(
 ):
     sede = obtener_sede_service(db, sede_id)
 
+    # Validar nombre duplicado
+    if datos.nombre:
+        sede_existente = obtener_por_nombre(db, datos.nombre)
+
+        if sede_existente and sede_existente.id != sede_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Ya existe una sede con ese nombre"
+            )
+
     datos_dict = datos.model_dump(exclude_unset=True)
 
-    return actualizar_sede(db, sede, datos_dict)
+    try:
+        return actualizar_sede(db, sede, datos_dict)
+
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="No fue posible actualizar la sede."
+        )
 
 
 def eliminar_sede_service(db: Session, sede_id: int):
     sede = obtener_sede_service(db, sede_id)
 
-    eliminar_sede(db, sede)
+    try:
+        eliminar_sede(db, sede)
+
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="No puedes eliminar esta sede porque tiene registros asociados."
+        )
