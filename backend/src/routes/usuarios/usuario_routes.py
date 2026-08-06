@@ -19,7 +19,7 @@ router = APIRouter(prefix="/usuarios", tags=["usuarios"])
 def registro(usuario_data: UsuarioCrear, db: Session = Depends(get_db)):
     return registrar_usuario(db, usuario_data)
 
-@router.put("/{usuario_id}", response_model=UsuarioOut)
+@router.patch("/{usuario_id}", response_model=UsuarioOut)
 def actualizar(
     usuario_id: int,
     datos: UsuarioUpdate,
