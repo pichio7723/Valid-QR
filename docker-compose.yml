@@ -14,7 +14,7 @@ services:
 
   redis:
     image: redis:7
-    container_name: validqr_redis
+    container_name: validqr_redis_teams
     restart: always
     ports:
       - "6379:6379"
